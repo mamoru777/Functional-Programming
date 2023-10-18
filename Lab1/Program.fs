@@ -1,30 +1,19 @@
-﻿open System.IO
-open System.Text.RegularExpressions
+﻿let replaceWithZeroIfOddRight (arr: int[]) =
+    let mutable modified = false
+    let length = Array.length arr
+    for i = 0 to length - 2 do
+        if arr.[i + 1] % 2 <> 0 then
+            arr.[i] <- 0
+            modified <- true
+    if modified then
+        arr
+    else
+        arr.[length - 1] <- 0
+        arr
 
-// Функция для чтения текста из файла
-let readTextFromFile (filePath: string) =
-    use reader = File.OpenText(filePath)
-    reader.ReadToEnd()
-
-// Фопция для определения самого часто встречающегося слова в тексте
-let findMostCommonWord (text: string) =
-    let wordPattern = @"\b\w+\b" // Регулярное выражение для слов
-    let matches = Regex.Matches(text, wordPattern)
-
-    let wordCounts =
-        matches
-        |> Seq.cast<Match>
-        |> Seq.map (fun m -> m.Value)
-        |> Seq.groupBy id
-        |> Seq.map (fun (word, group) -> (word, Seq.length group))
-        |> Seq.sortByDescending (fun (_, count) -> count)
-    
-    let mostCommonWord, mostCommonCount = Seq.head wordCounts
-    
-    mostCommonWord, mostCommonCount
-
-let textFileName = "text_file.txt"
-let text = readTextFromFile textFileName
-let mostCommonWord, mostCommonCount = findMostCommonWord text
-
-printfn "Самое часто встречающееся слово: %s (встречается %d раз)" mostCommonWord mostCommonCount
+// Пример использования
+let arr = [|1; 3; 4; 5; 6; 7; 9|]
+let firstarr = [|1; 3; 4; 5; 6; 7; 9|]
+let modifiedArr = replaceWithZeroIfOddRight arr
+printfn "Исходный массив: %A" firstarr
+printfn "Измененный массив: %A" modifiedArr
