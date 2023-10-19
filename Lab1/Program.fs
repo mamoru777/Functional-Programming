@@ -1,19 +1,28 @@
-﻿let replaceWithZeroIfOddRight (arr: int[]) =
-    let mutable modified = false
-    let length = Array.length arr
-    for i = 0 to length - 2 do
-        if arr.[i + 1] % 2 <> 0 then
-            arr.[i] <- 0
-            modified <- true
-    if modified then
-        arr
-    else
-        arr.[length - 1] <- 0
-        arr
+﻿// Интерфейс для сотрудников деканата
+type IDekanatEmployee =
+    abstract member GetName : unit -> string
+    abstract member GetPosition : unit -> string
+
+// Базовый класс для сотрудников деканата
+type DekanatEmployee(name: string, position: string) =
+    interface IDekanatEmployee with
+        member this.GetName () = name
+        member this.GetPosition () = position
+
+// Класс для студентов
+type Student(name: string, major: string) =
+    inherit DekanatEmployee(name, "Студент")
+    member this.GetMajor () = major
+    //member this.GetName () = name
+
+// Класс для преподавателей
+type Teacher(name: string, department: string) =
+    inherit DekanatEmployee(name, "Преподаватель")
+    member this.GetDepartment () = department
 
 // Пример использования
-let arr = [|1; 3; 4; 5; 6; 7; 9|]
-let firstarr = [|1; 3; 4; 5; 6; 7; 9|]
-let modifiedArr = replaceWithZeroIfOddRight arr
-printfn "Исходный массив: %A" firstarr
-printfn "Измененный массив: %A" modifiedArr
+let student = new Student("Иван", "Математика")
+let teacher = new Teacher("Анна", "Физика")
+
+printfn "Студент: %s, Отделение: %s" (student.GetName ()) (student.GetMajor ())
+printfn "Преподаватель: %s, Отделение: %s" (teacher.GetName ()) (teacher.GetDepartment ())
