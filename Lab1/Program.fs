@@ -1,34 +1,36 @@
-﻿type IDekanatEmployee =
-    abstract member GetName : unit -> string
-    abstract member GetPosition : unit -> string
+﻿type IItem = 
+    abstract member Trade : unit -> unit
 
-type DekanatEmployee(name: string, position: string) =
-    interface IDekanatEmployee with
-        member this.GetName () = name
-        member this.GetPosition () = position
+type IOwner = 
+    abstract member Wage : int -> unit
+    abstract member Employ : unit -> unit
+    abstract member Sack : unit -> unit
 
-type Student(name: string, major: string) =
-    inherit DekanatEmployee(name, "Студент")
-    member this.GetMajor () = major
+type Game(price : int) =
+    let price = price
+    interface IItem with
+        member this.Trade() = printf "Игра продана по стоимости %d" price
 
-    interface IDekanatEmployee with
-        member this.GetName () = name
-        member this.GetPosition () = "Студент"
+type Assistant(FIO : string) =
+    let FIO = FIO
+    do printfn "%s зашел в магазин " FIO
 
-type Teacher(name: string, department: string) =
-    inherit DekanatEmployee(name, "Преподаватель")
-    member this.GetDepartment () = department
+    interface IOwner with
+        member this.Wage salary = printfn "Продавец %s получил зарплату %d" FIO salary
+        member this.Employ() = printfn "%s получил работу" FIO
+        member this.Sack() = printfn "Продавец %s был уволен" FIO
 
-    interface IDekanatEmployee with
-        member this.GetName () = name
-        member this.GetPosition () = "Преподаватель"
+    abstract member StartWork : unit -> unit
 
-// Пример использования
-let student = new Student("Иван", "Математика")
-let teacher = new Teacher("Анна", "Физика")
-
-let printEmployeeInfo (employee: IDekanatEmployee) =
-    printfn "Сотрудник: %s, Должность: %s" (employee.GetName ()) (employee.GetPosition ())
-
-printEmployeeInfo student
-printEmployeeInfo teacher
+    override this.StartWork() = printfn "Продавец %s начал работу" FIO
+    
+    member this.SellItem item = (item :> IItem).Trade()
+let assistant = Assistant("Евгений Борисович")
+    
+(assistant :> IOwner).Employ()
+    
+assistant.StartWork()   
+    
+let game = Game(4599)
+assistant.SellItem game
+0
