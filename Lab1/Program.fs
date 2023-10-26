@@ -1,5 +1,6 @@
 ﻿type IItem = 
     abstract member Trade : unit -> unit
+    abstract member Buy : unit -> unit
 
 type IOwner = 
     abstract member Wage : int -> unit
@@ -9,7 +10,8 @@ type IOwner =
 type Game(price : int) =
     let price = price
     interface IItem with
-        member this.Trade() = printf "Игра продана по стоимости %d" price
+        member this.Trade() = printfn "Игра продана по стоимости %d" price
+         member this.Buy() = printfn "Игра куплена покупателем по стоимости %d" price
 
 type Assistant(FIO : string) =
     let FIO = FIO
@@ -25,11 +27,19 @@ type Assistant(FIO : string) =
     override this.StartWork() = printfn "Продавец %s начал работу" FIO
     
     member this.SellItem item = (item :> IItem).Trade()
+
+type Buyer(FIO : string) =
+    let FIO = FIO
+    do printfn "покупатель %s зашел в магазин " FIO
+    member this.BuyItem item = (item :> IItem).Buy()
+
 let assistant = Assistant("Евгений Борисович")
-    
+  
 (assistant :> IOwner).Employ()
     
 assistant.StartWork()   
-    
+
+let buyer = Buyer("Александр Евгеньевич")      
 let game = Game(4599)
 assistant.SellItem game
+buyer.BuyItem game
