@@ -1,59 +1,52 @@
-﻿open System.IO 
-open System.Threading.Tasks 
-open System.Linq 
-open System.Collections.Generic 
-open System 
-open System.Text 
- 
-let readFileAsync (filepath : string) : Async<KeyValuePair<KeyValuePair<string, string>, int>> = 
-    async { 
-        try 
-            let wordFrequency = Dictionary<string, int>() 
- 
-            use stream = new StreamReader(Path.Join(__SOURCE_DIRECTORY__, filepath), Encoding.UTF8) 
-            while not stream.EndOfStream do 
-                let line = stream.ReadLine() 
-                if (line <> null) then 
-                    for word in line.Split([|' '; '\t'|], StringSplitOptions.RemoveEmptyEntries) do 
-                        let lowerWord = word.ToLower() 
-                        if wordFrequency.ContainsKey(lowerWord) then 
-                            wordFrequency.[lowerWord] <- wordFrequency.[lowerWord] + 1 
-                        else 
-                            wordFrequency.Add(lowerWord, 1) 
-             
-            let leastFrequentWord = wordFrequency |> Seq.minBy (fun kvp -> kvp.Value) 
-            let innerPair = new KeyValuePair<string, string>(filepath, leastFrequentWord.Key) 
-            return new KeyValuePair<KeyValuePair<string, string>, int>(innerPair, leastFrequentWord.Value) 
-        with 
-            | :? FileNotFoundException as ex -> 
-                printfn "File not found: %s" ex.FileName 
-                return KeyValuePair<KeyValuePair<string, string>, int>(KeyValuePair<string, string>("ошибка", "ошибка"), 0) 
-            | :? IOException as ex -> 
-                printfn "IO error: %s" ex.Message 
-                return KeyValuePair<KeyValuePair<string, string>, int>(KeyValuePair<string, string>("ошибка", "ошибка"), 0) 
-            | ex -> 
-                printfn "An unexpected error occurred: %s" ex.Message 
-                return KeyValuePair<KeyValuePair<string, string>, int>(KeyValuePair<string, string>("ошибка", "ошибка"), 0) 
-    } 
- 
-let findLeastFrequentWordAsync (filepaths : string list) : Async<unit> = 
-    async { 
-        let! wordFrequencies = Async.Parallel(filepaths |> List.map readFileAsync) 
- 
-        let outputPath = "result.txt" 
-        use writer = new StreamWriter(outputPath) 
- 
-        for wf in wordFrequencies do 
-            writer.WriteLine($"{Path.GetFileName(wf.Key.Key)} - {wf.Key.Value} - {wf.Value}") 
- 
-        Console.WriteLine("Результаты записаны в файл: " + outputPath) 
-    } 
- 
-     
-let filepaths = [ "harry_potter.txt"; "voyna-i-mir-tom-x8.txt"; "vlastelin-kolec.txt" ] 
- 
-let leastFrequentWord = Async.RunSynchronously (findLeastFrequentWordAsync filepaths) 
- 
-//printfn "Наименее встречающееся слово: %s (Количество: %d) в файле: %s" leastFrequentWord.Key.Value leastFrequentWord.Value leastFrequentWord.Key.Key 
- 
-    //printfn "Наименее встречающееся слово: %s (Количество: %d) в файле: %s" leastFrequentWord.Key.Value leastFrequentWord.Value leastFrequentWord.Key.Key
+﻿open System
+open System.Drawing
+open System.Drawing.Imaging
+
+let rec lSystemIteration (iterations: int) (start: string) =
+    let rec iterate (iteration: int) (current: seq<char>) =
+        if iteration = iterations then
+            String(current |> Seq.toArray)
+        else
+            let nextIteration = 
+                current
+                |> Seq.collect (fun c ->
+                    match c with
+                    | 'F' -> "+FF-FF-FF+"
+                    | _ -> string c
+                )
+
+            iterate (iteration + 1) nextIteration
+    iterate 0 (start.ToCharArray() |> Seq.toList)
+
+let iterations = 3 // Количество итераций
+let startString = "+FF-FF-FF+"
+
+let result = lSystemIteration iterations startString
+printfn "Результат L-системы после %d итераций: %s" iterations result
+
+// Создание изображения для отрисовки графика
+let width = 800
+let height = 600
+let image = new Bitmap(width, height)
+use graphics = Graphics.FromImage(image)
+let x = ref (float32 (width / 2))
+let y = ref (float32 (height - 50))
+let angle = ref 0.0
+
+// Интерпретация команд и рисование графика
+for command in result do
+    match command with
+    | 'F' ->
+        let x1 = !x + cos (!angle * (float32)Math.PI / 180.0)
+        let y1 = !y + sin (!angle * (float32)Math.PI / 180.0)
+        let point1 = new PointF(!x, !y)
+        let point2 = new PointF(x1, y1)
+        graphics.DrawLine(Pens.Black, point1, point2)
+        x := x1
+        y := y1
+    | '+' -> angle := !angle + 60.0
+    | '-' -> angle := !angle - 60.0
+    | _ -> ()
+
+// Сохранение изображения в файл
+image.Save("LSystem.png", ImageFormat.Png)
