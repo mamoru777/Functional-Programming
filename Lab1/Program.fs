@@ -33,4 +33,3 @@ assistant.StartWork()
     
 let game = Game(4599)
 assistant.SellItem game
-0
