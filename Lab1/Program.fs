@@ -1,6 +1,5 @@
 ﻿open System
 open System.Drawing
-open System.Drawing.Imaging
 
 let rec lSystemIteration (iterations: int) (start: string) =
     let rec iterate (iteration: int) (current: seq<char>) =
@@ -49,4 +48,7 @@ for command in result do
     | _ -> ()
 
 // Сохранение изображения в файл
-image.Save("LSystem.png", ImageFormat.Png)
+let imagePath = "LSystem.png"
+image.Save(imagePath)
+
+Console.WriteLine("Изображение сохранено в файл: %s" imagePath
