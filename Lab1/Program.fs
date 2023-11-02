@@ -53,7 +53,3 @@ let findLeastFrequentWordAsync (filepaths : string list) : Async<unit> =
 let filepaths = [ "harry_potter.txt"; "voyna-i-mir-tom-x8.txt"; "vlastelin-kolec.txt" ] 
  
 let leastFrequentWord = Async.RunSynchronously (findLeastFrequentWordAsync filepaths) 
- 
-//printfn "Наименее встречающееся слово: %s (Количество: %d) в файле: %s" leastFrequentWord.Key.Value leastFrequentWord.Value leastFrequentWord.Key.Key 
- 
-    //printfn "Наименее встречающееся слово: %s (Количество: %d) в файле: %s" leastFrequentWord.Key.Value leastFrequentWord.Value leastFrequentWord.Key.Key
