@@ -1,54 +1,64 @@
 ﻿open System
-open System.Drawing
+open SkiaSharp
+open System.Collections
 
-let rec lSystemIteration (iterations: int) (start: string) =
-    let rec iterate (iteration: int) (current: seq<char>) =
-        if iteration = iterations then
-            String(current |> Seq.toArray)
-        else
-            let nextIteration = 
-                current
-                |> Seq.collect (fun c ->
-                    match c with
-                    | 'F' -> "+FF-FF-FF+"
-                    | _ -> string c
-                )
+type LSystemCommand =
+    | Forward
+    | TurnLeft
+    | TurnRight
+    | Push
+    | Pop
 
-            iterate (iteration + 1) nextIteration
-    iterate 0 (start.ToCharArray() |> Seq.toList)
+type State = { X: float32; Y: float32; Angle: float32 }
 
-let iterations = 3 // Количество итераций
-let startString = "+FF-FF-FF+"
+let lSystemRules (input: char) =
+    match input with
+    | 'F' -> "F+F--F+F"
+    | '+' -> "+"
+    | '-' -> "-"
+    | '[' -> "["
+    | ']' -> "]"
+    | _   -> ""
 
-let result = lSystemIteration iterations startString
-printfn "Результат L-системы после %d итераций: %s" iterations result
+let rec applyLSystemRules (input: string) (depth: int) =
+    if depth = 0 then
+        input
+    else
+        let mutable result = ""
+        for i = 0 to input.Length - 1 do
+            result <- result + lSystemRules (input.[i])
+        applyLSystemRules result (depth - 1)
 
-// Создание изображения для отрисовки графика
-let width = 800
-let height = 600
-let image = new Bitmap(width, height)
-use graphics = Graphics.FromImage(image)
-let x = ref (float32 (width / 2))
-let y = ref (float32 (height - 50))
-let angle = ref 0.0
+let executeLSystem (input: string) (maxDepth: int) =
+    let finalString = applyLSystemRules input maxDepth
+    let mutable state = { X = 0.0f; Y = 0.0f; Angle = 0.0f }
+    let mutable stateStack = []
+    let mathPi1 = float32 Math.PI
+    let mathPi2 = float32 Math.PI
+    // Создаем изображение
+    let surface = new SKBitmap(800, 600)
+    use canvas = new SKCanvas(surface)
 
-// Интерпретация команд и рисование графика
-for command in result do
-    match command with
-    | 'F' ->
-        let x1 = !x + cos (!angle * (float32)Math.PI / 180.0)
-        let y1 = !y + sin (!angle * (float32)Math.PI / 180.0)
-        let point1 = new PointF(!x, !y)
-        let point2 = new PointF(x1, y1)
-        graphics.DrawLine(Pens.Black, point1, point2)
-        x := x1
-        y := y1
-    | '+' -> angle := !angle + 60.0
-    | '-' -> angle := !angle - 60.0
-    | _ -> ()
+    for i = 0 to finalString.Length - 1 do
+        match finalString.[i] with
+        | 'F' -> 
+            let newX = state.X + 10.0f * cos state.Angle
+            let newY = state.Y + 10.0f * sin state.Angle
+            canvas.DrawLine(state.X, state.Y, newX, newY, new SKPaint())
+            state <- { state with X = newX; Y = newY }
+        | '+' -> state <- { state with Angle = state.Angle + (mathPi1 / 3.0f) }
+        | '-' -> state <- { state with Angle = state.Angle - (mathPi2 / 3.0f) }
+        | '[' -> stateStack <- state :: stateStack
+        | ']' -> 
+            match stateStack with
+            | [] -> ()  // Handle empty stack
+            | hd :: tl ->
+                state <- hd
+                stateStack <- tl
+        | _ -> ()
 
-// Сохранение изображения в файл
-let imagePath = "LSystem.png"
-image.Save(imagePath)
+    // Сохраняем изображение
+    use imageStream = new SKFileWStream("LSystem.png")
+    surface.Encode(imageStream, SKEncodedImageFormat.Png, 100)
 
-Console.WriteLine("Изображение сохранено в файл: %s" imagePath
+executeLSystem "F+F--F+F" 4
